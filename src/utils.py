@@ -2,10 +2,10 @@
 Common utility functions for weather data processing tasks.
 """
 import json
-from typing import Any, Dict
+from typing import Any
 
 
-def load_json(filename: str) -> Dict[str, Any]:
+def load_json(filename: str) -> dict[str, Any]:
     """
     Load JSON data from a file.
 
@@ -29,7 +29,7 @@ def load_json(filename: str) -> Dict[str, Any]:
         raise json.JSONDecodeError(f"Error decoding JSON from '{filename}': {e.msg}", e.doc, e.pos)
 
 
-def save_to_json(data: Dict[str, Any], filename: str) -> None:
+def save_to_json(data: dict[str, Any], filename: str) -> None:
     """
     Save data to a JSON file.
 
