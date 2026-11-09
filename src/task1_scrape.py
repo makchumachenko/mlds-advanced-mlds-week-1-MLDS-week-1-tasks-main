@@ -1,6 +1,5 @@
 import requests
 from bs4 import BeautifulSoup
-from typing import Dict
 
 try:
     from .utils import save_to_json
@@ -22,7 +21,7 @@ def fetch_wikipedia_page(url: str) -> str:
         requests.HTTPError: If the HTTP request returned an unsuccessful status code.
         requests.RequestException: If there was a network error.
     """
-    pass
+    return requests.get(url).text
 
 
 def extract_title(soup: BeautifulSoup) -> str:
@@ -35,7 +34,7 @@ def extract_title(soup: BeautifulSoup) -> str:
     Returns:
         str: The title of the page.
     """
-    pass
+    return soup.find('h1', id="firstHeading").string
 
 
 def extract_first_sentence(soup: BeautifulSoup) -> str:
@@ -48,7 +47,8 @@ def extract_first_sentence(soup: BeautifulSoup) -> str:
     Returns:
         str: The first sentence of the first paragraph.
     """
-    pass
+    p = soup.find_all("p")[0].string
+    return p.split('.')[0].strip() + '.'
 
 
 if __name__ == "__main__":
