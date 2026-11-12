@@ -1,4 +1,4 @@
-from typing import Dict, List, Any
+from typing import Any
 
 try:
     from .utils import load_json
@@ -6,8 +6,8 @@ except ImportError:
     from utils import load_json
 
 
-def analyze_daily_weather(day: Dict[str, Any], temp_threshold: float = 30, 
-                          wind_threshold: float = 15, humidity_threshold: float = 70) -> Dict[str, Any]:
+def analyze_daily_weather(day: dict[str, Any], temp_threshold: float = 30, 
+                          wind_threshold: float = 15, humidity_threshold: float = 70) -> dict[str, Any]:
     """
     Analyze weather data for a single day.
 
@@ -20,10 +20,17 @@ def analyze_daily_weather(day: Dict[str, Any], temp_threshold: float = 30,
     Returns:
         dict: A dictionary with analysis results for the day.
     """
-    pass
+    analysis = {
+        "is_hot_day": day['max_temperature'] > temp_threshold,
+        "temperature_swing": day['max_temperature'] - day['min_temperature'],
+        "is_windy_day": day['wind_speed'] > wind_threshold,
+        "is_uncomfortable_day": day['humidity'] > humidity_threshold,
+        "is_rainy_day": day['precipitation'] > 0
+    }
+    return day | analysis
 
 
-def generate_daily_report(analysis: Dict[str, Any]) -> str:
+def generate_daily_report(analysis: dict[str, Any]) -> str:
     """
     Generate a detailed report based on the analysis results for a single day.
 
@@ -33,10 +40,15 @@ def generate_daily_report(analysis: Dict[str, Any]) -> str:
     Returns:
         str: A detailed report as a string.
     """
-    pass
+    return (f"Date: {analysis['date']}\n"
+        + f"Weather: {analysis['weather_description']}\n"
+        + f"Temperature: Max {analysis['max_temperature']}°C, Min {analysis['min_temperature']}°C (Swing: {analysis['temperature_swing']}°C)\n"
+        + "It was a hot day.\n" * analysis['is_hot_day']
+        + "It was a windy day.\n" * analysis['is_windy_day']
+        + ("It was a rainy day." if analysis['is_rainy_day'] else "There was no precipitation."))
 
 
-def summarize_weather_analysis(analyses: List[Dict[str, Any]]) -> str:
+def summarize_weather_analysis(analyses: list[dict[str, Any]]) -> str:
     """
     Summarize the weather analysis over multiple days.
 
@@ -46,7 +58,32 @@ def summarize_weather_analysis(analyses: List[Dict[str, Any]]) -> str:
     Returns:
         str: A summary report as a string.
     """
-    pass
+    report = [generate_daily_report(analysis) for analysis in analyses]
+    metrics = ('max_temperature', 'wind_speed', 'humidity', 'precipitation')
+    values = (
+        value
+        for metric in metrics
+        for value in find_max_day(analyses, metric)
+        )
+    report.append(
+        "Weather Summary:\n"
+        "Hottest day: {} with a maximum temperature of {}°C\n"
+        "Windiest day: {} with wind speeds of {} km/h\n"
+        "Most humid day: {} with a humidity level of {}%\n"
+        "Rainiest day: {} with {} mm of precipitation"
+        .format(*values)
+    )
+    return "\n\n".join(report)
+
+
+def find_max_day(analyses: list[dict[str, Any]], metric: str) -> tuple[str, int | float]:
+    day = ""
+    value = 0
+    for analysis in analyses:
+        if analysis[metric] > value:
+            day = analysis['date']
+            value = analysis[metric]
+    return day, value
 
 
 if __name__ == "__main__":
