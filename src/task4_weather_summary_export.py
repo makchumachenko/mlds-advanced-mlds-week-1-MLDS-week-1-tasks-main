@@ -1,5 +1,7 @@
 import csv
-from typing import Dict, List, Union, TextIO
+from typing import TextIO
+from .task3_complex_weather_analysis import analyze_daily_weather
+import pandas as pd
 
 try:
     from .utils import load_json
@@ -7,7 +9,7 @@ except ImportError:
     from utils import load_json
 
 
-def summarize_weather_data(data: List[Dict[str, any]]) -> Dict[str, float]:
+def summarize_weather_data(data: list[dict[str, any]]) -> dict[str, float]:
     """
     Summarize the weather data across all days.
 
@@ -17,10 +19,21 @@ def summarize_weather_data(data: List[Dict[str, any]]) -> Dict[str, float]:
     Returns:
         dict: A summary of the key metrics across all days.
     """
-    pass
+    analyses = [analyze_daily_weather(day) for day in data]
+    df = pd.DataFrame(analyses)
+    return {
+        "average_max_temp": df['max_temperature'].mean().item(),
+        "average_min_temp": df['min_temperature'].mean().item(),
+        "total_precipitation": df['precipitation'].sum().item(),
+        "average_wind_speed": df['wind_speed'].mean().item(),
+        "average_humidity": df['humidity'].mean().item(),
+        "hot_days": df['is_hot_day'].sum().item(),
+        "windy_days": df['is_windy_day'].sum().item(),
+        "rainy_days": df['is_rainy_day'].sum().item()
+    }
 
 
-def export_to_csv(data: List[Dict[str, any]], file: Union[str, TextIO]) -> None:
+def export_to_csv(data: list[dict[str, any]], file: str | TextIO) -> None:
     """
     Export the summarized weather data to a CSV file or file-like object.
 
@@ -30,6 +43,8 @@ def export_to_csv(data: List[Dict[str, any]], file: Union[str, TextIO]) -> None:
     """
     headers = ["Date", "Max Temperature", "Min Temperature", "Precipitation", "Wind Speed", "Humidity",
                "Weather Description", "Is Hot Day", "Is Windy Day", "Is Rainy Day"]
+    analyses = [analyze_daily_weather(day) for day in data]
+
 
     def write_data(writer: csv.DictWriter) -> None:
         """Helper function to write rows to the CSV.
@@ -37,7 +52,18 @@ def export_to_csv(data: List[Dict[str, any]], file: Union[str, TextIO]) -> None:
         Args:
             writer (csv.DictWriter): The CSV writer object.
         """
-        pass
+        writer.writeheader()
+        for analysis in analyses:
+            writer.writerow({
+                header: analysis[header.replace(' ', '_').lower()]
+                for header in headers
+                })
+
+    if isinstance(file, str):
+        with open(file, "w", newline="") as fp:
+            write_data(csv.DictWriter(fp, fieldnames=headers))
+    else:
+        write_data(csv.DictWriter(file, fieldnames=headers))
 
 
 if __name__ == "__main__":
